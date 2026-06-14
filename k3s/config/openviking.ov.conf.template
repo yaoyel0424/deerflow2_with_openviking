@@ -1,0 +1,44 @@
+{
+  "storage": {
+    "workspace": "/app/.openviking/openviking_workspace",
+    "vectordb": {
+      "name": "context",
+      "backend": "local",
+      "project": "default"
+    },
+    "agfs": {
+      "backend": "local",
+      "timeout": 10
+    }
+  },
+  "log": {
+    "level": "INFO",
+    "output": "stdout"
+  },
+  "server": {
+    "host": "0.0.0.0",
+    "port": 1933,
+    "workers": 1,
+    "root_api_key": "REPLACE_ROOT_API_KEY",
+    "cors_origins": ["*"]
+  },
+  "embedding": {
+    "dense": {
+      "provider": "REPLACE_EMBEDDING_PROVIDER",
+      "api_base": "REPLACE_EMBEDDING_API_BASE",
+      "api_key": "REPLACE_EMBEDDING_API_KEY",
+      "model": "REPLACE_EMBEDDING_MODEL",
+      "dimension": 1024,
+      "input": "REPLACE_EMBEDDING_INPUT"
+    }
+  },
+  "vlm": {
+    "provider": "REPLACE_VLM_PROVIDER",
+    "api_base": "REPLACE_VLM_API_BASE",
+    "api_key": "REPLACE_VLM_API_KEY",
+    "model": "REPLACE_VLM_MODEL",
+    "max_retries": 2,
+    "temperature": 0.0,
+    "thinking": false
+  }
+}

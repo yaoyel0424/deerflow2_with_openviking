@@ -1,0 +1,42 @@
+{
+  "version": "1.0",
+  "lastUpdated": "2026-06-07T15:05:22.504597Z",
+  "user": {
+    "workContext": {
+      "summary": "",
+      "updatedAt": ""
+    },
+    "personalContext": {
+      "summary": "The user communicates primarily in Chinese.",
+      "updatedAt": "2026-06-07T15:05:22.504227Z"
+    },
+    "topOfMind": {
+      "summary": "",
+      "updatedAt": ""
+    }
+  },
+  "history": {
+    "recentMonths": {
+      "summary": "",
+      "updatedAt": ""
+    },
+    "earlierContext": {
+      "summary": "",
+      "updatedAt": ""
+    },
+    "longTermBackground": {
+      "summary": "",
+      "updatedAt": ""
+    }
+  },
+  "facts": [
+    {
+      "id": "fact_3dce8f32",
+      "content": "User communicates primarily in Chinese.",
+      "category": "context",
+      "confidence": 0.9,
+      "createdAt": "2026-06-07T15:05:22.504227Z",
+      "source": "e143cd6c-43ec-4e48-99e3-4cb04eaba042"
+    }
+  ]
+}

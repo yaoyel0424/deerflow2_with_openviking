@@ -1,0 +1,42 @@
+{
+  "version": "1.0",
+  "lastUpdated": "2026-06-08T02:36:42.736427Z",
+  "user": {
+    "workContext": {
+      "summary": "",
+      "updatedAt": ""
+    },
+    "personalContext": {
+      "summary": "User greeted in Chinese (你好啊), indicating Chinese language capability. No other personal details were shared.",
+      "updatedAt": "2026-06-08T02:36:42.735394Z"
+    },
+    "topOfMind": {
+      "summary": "",
+      "updatedAt": ""
+    }
+  },
+  "history": {
+    "recentMonths": {
+      "summary": "",
+      "updatedAt": ""
+    },
+    "earlierContext": {
+      "summary": "",
+      "updatedAt": ""
+    },
+    "longTermBackground": {
+      "summary": "",
+      "updatedAt": ""
+    }
+  },
+  "facts": [
+    {
+      "id": "fact_8559e140",
+      "content": "User speaks Chinese, as evidenced by greeting in Chinese.",
+      "category": "context",
+      "confidence": 0.95,
+      "createdAt": "2026-06-08T02:36:42.735394Z",
+      "source": "6ce53357-b43b-4408-848d-15cccc90f5a9"
+    }
+  ]
+}

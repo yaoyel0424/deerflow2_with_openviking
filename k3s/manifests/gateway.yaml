@@ -1,0 +1,114 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: deer-flow-gateway
+  namespace: deer-flow
+  labels:
+    app.kubernetes.io/name: deer-flow-gateway
+    app.kubernetes.io/component: gateway
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: deer-flow-gateway
+  template:
+    metadata:
+      labels:
+        app: deer-flow-gateway
+        app.kubernetes.io/name: deer-flow-gateway
+    spec:
+      containers:
+        - name: gateway
+          image: deer-flow-gateway:latest
+          imagePullPolicy: Never
+          ports:
+            - name: http
+              containerPort: 8001
+          env:
+            - name: CI
+              value: "true"
+            - name: DEER_FLOW_PROJECT_ROOT
+              value: /app
+            - name: DEER_FLOW_HOME
+              value: /data/.deer-flow
+            - name: DEER_FLOW_CONFIG_PATH
+              value: /config/config.yaml
+            - name: DEER_FLOW_EXTENSIONS_CONFIG_PATH
+              value: /config/extensions_config.json
+            - name: DEER_FLOW_CHANNELS_LANGGRAPH_URL
+              value: http://deer-flow-gateway:8001/api
+            - name: DEER_FLOW_CHANNELS_GATEWAY_URL
+              value: http://deer-flow-gateway:8001
+            - name: OPENVIKING_BASE_URL
+              value: http://openviking:1933
+            - name: OPENVIKING_SYNC_ENABLED
+              value: "true"
+            - name: OPENVIKING_COMMIT_EACH_RUN
+              value: "true"
+          command:
+            - sh
+            - -c
+            - cd /app/backend && PYTHONPATH=/app/backend:/app/extensions uv run --no-sync python /app/extensions/run_gateway.py
+          envFrom:
+            - secretRef:
+                name: deer-flow-env
+          volumeMounts:
+            - name: config
+              mountPath: /config
+              readOnly: true
+            - name: data
+              mountPath: /data/.deer-flow
+            - name: skills
+              mountPath: /app/skills
+              # custom skill 安装/编辑需写入 PVC；Sandbox 仍只读挂载 /mnt/skills
+            - name: extensions
+              mountPath: /app/extensions
+              readOnly: true
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8001
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            timeoutSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8001
+            initialDelaySeconds: 60
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 500m
+              memory: 1Gi
+            limits:
+              cpu: "2"
+              memory: 4Gi
+      volumes:
+        - name: config
+          configMap:
+            name: deer-flow-config
+        - name: data
+          persistentVolumeClaim:
+            claimName: deer-flow-data
+        - name: skills
+          persistentVolumeClaim:
+            claimName: deer-flow-skills
+        - name: extensions
+          configMap:
+            name: deer-flow-gateway-extensions
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: deer-flow-gateway
+  namespace: deer-flow
+  labels:
+    app.kubernetes.io/name: deer-flow-gateway
+spec:
+  selector:
+    app: deer-flow-gateway
+  ports:
+    - name: http
+      port: 8001
+      targetPort: 8001

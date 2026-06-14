@@ -1,0 +1,42 @@
+{
+  "version": "1.0",
+  "lastUpdated": "2026-06-08T07:03:12.140065Z",
+  "user": {
+    "workContext": {
+      "summary": "",
+      "updatedAt": ""
+    },
+    "personalContext": {
+      "summary": "",
+      "updatedAt": ""
+    },
+    "topOfMind": {
+      "summary": "",
+      "updatedAt": ""
+    }
+  },
+  "history": {
+    "recentMonths": {
+      "summary": "",
+      "updatedAt": ""
+    },
+    "earlierContext": {
+      "summary": "",
+      "updatedAt": ""
+    },
+    "longTermBackground": {
+      "summary": "",
+      "updatedAt": ""
+    }
+  },
+  "facts": [
+    {
+      "id": "fact_3e49b425",
+      "content": "The agent attempted to process an image upload (/mnt/user-data/uploads/4685b2e79e966c33d923a132aa0e44ce.png) but received a deserialization error (invalid_request_error) because the model does not support image_url input — only text input is accepted.",
+      "category": "correction",
+      "confidence": 0.95,
+      "createdAt": "2026-06-08T07:03:12.137861Z",
+      "source": "cb2423b5-b1ec-4223-ac3c-7768d33d18a1"
+    }
+  ]
+}

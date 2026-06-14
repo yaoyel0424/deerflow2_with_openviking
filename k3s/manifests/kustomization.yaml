@@ -1,0 +1,30 @@
+# Kustomize 入口 — deploy.ps1 会动态生成 config/secret 并 apply
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: deer-flow
+
+resources:
+  - namespace.yaml
+  - rbac.yaml
+  - pvc.yaml
+  - configmap-nginx.yaml
+  - skills-init-job.yaml
+  - provisioner.yaml
+  - openviking.yaml
+  - gateway.yaml
+  - frontend.yaml
+  - nginx.yaml
+  - service-nodeport.yaml
+
+# deploy 脚本通过 kubectl apply -k . 并额外 apply generated 文件
+images:
+  - name: deer-flow-gateway
+    newName: deer-flow-gateway
+    newTag: latest
+  - name: deer-flow-frontend
+    newName: deer-flow-frontend
+    newTag: latest
+  - name: deer-flow-provisioner
+    newName: deer-flow-provisioner
+    newTag: latest

@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: deer-flow-nginx
+  namespace: deer-flow
+  labels:
+    app.kubernetes.io/name: deer-flow-nginx
+data:
+  nginx.conf: |
+    # 由 deploy.ps1 从 config/nginx.conf 覆盖生成；此处为占位
+    # 运行 deploy.ps1 会自动更新此 ConfigMap

@@ -1,0 +1,34 @@
+# Provisioner 在集群内通过 ServiceAccount 管理 Sandbox Pod
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: deer-flow-provisioner
+  namespace: deer-flow
+  labels:
+    app.kubernetes.io/name: deer-flow-provisioner
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: deer-flow-provisioner
+  labels:
+    app.kubernetes.io/name: deer-flow-provisioner
+rules:
+  - apiGroups: [""]
+    resources: ["pods", "services", "namespaces"]
+    verbs: ["get", "list", "watch", "create", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: deer-flow-provisioner
+  labels:
+    app.kubernetes.io/name: deer-flow-provisioner
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: deer-flow-provisioner
+subjects:
+  - kind: ServiceAccount
+    name: deer-flow-provisioner
+    namespace: deer-flow

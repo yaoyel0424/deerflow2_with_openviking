@@ -1,0 +1,32 @@
+# 用户数据与 skills 持久化（k3s/Rancher 默认 local-path）
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: deer-flow-data
+  namespace: deer-flow
+  labels:
+    app.kubernetes.io/name: deer-flow
+    app.kubernetes.io/component: storage
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 20Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: deer-flow-skills
+  namespace: deer-flow
+  labels:
+    app.kubernetes.io/name: deer-flow
+    app.kubernetes.io/component: skills
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 2Gi

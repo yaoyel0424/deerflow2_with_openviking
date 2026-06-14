@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: deer-flow-nginx
+  namespace: deer-flow
+  labels:
+    app.kubernetes.io/name: deer-flow-nginx
+    app.kubernetes.io/component: ingress
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: deer-flow-nginx
+  template:
+    metadata:
+      labels:
+        app: deer-flow-nginx
+        app.kubernetes.io/name: deer-flow-nginx
+    spec:
+      containers:
+        - name: nginx
+          image: deer-flow-nginx-local:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 2026
+          volumeMounts:
+            - name: nginx-config
+              mountPath: /etc/nginx/nginx.conf
+              subPath: nginx.conf
+              readOnly: true
+          readinessProbe:
+            tcpSocket:
+              port: 2026
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+      volumes:
+        - name: nginx-config
+          configMap:
+            name: deer-flow-nginx
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: deer-flow-nginx
+  namespace: deer-flow
+  labels:
+    app.kubernetes.io/name: deer-flow-nginx
+spec:
+  selector:
+    app: deer-flow-nginx
+  ports:
+    - name: http
+      port: 2026
+      targetPort: 2026

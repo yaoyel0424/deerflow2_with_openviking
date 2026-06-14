@@ -1,0 +1,42 @@
+{
+  "version": "1.0",
+  "lastUpdated": "2026-06-08T07:11:01.776556Z",
+  "user": {
+    "workContext": {
+      "summary": "",
+      "updatedAt": ""
+    },
+    "personalContext": {
+      "summary": "",
+      "updatedAt": ""
+    },
+    "topOfMind": {
+      "summary": "",
+      "updatedAt": ""
+    }
+  },
+  "history": {
+    "recentMonths": {
+      "summary": "",
+      "updatedAt": ""
+    },
+    "earlierContext": {
+      "summary": "",
+      "updatedAt": ""
+    },
+    "longTermBackground": {
+      "summary": "",
+      "updatedAt": ""
+    }
+  },
+  "facts": [
+    {
+      "id": "fact_6650a539",
+      "content": "The LLM API endpoint does not support the 'image_url' message variant and only accepts 'text' type messages in the JSON body",
+      "category": "context",
+      "confidence": 0.95,
+      "createdAt": "2026-06-08T07:11:01.775819Z",
+      "source": "5c49202e-0099-407d-904c-b308750b3ea0"
+    }
+  ]
+}

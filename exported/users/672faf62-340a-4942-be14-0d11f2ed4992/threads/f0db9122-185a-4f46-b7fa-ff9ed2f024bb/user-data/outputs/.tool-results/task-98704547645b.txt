@@ -1,0 +1,684 @@
+Task Succeeded. Result: I'll create all the missing files systematically. Let me start by examining the existing project structure, then create everything needed.
+
+<bash>
+ls /mnt/user-data/workspace/scale-miniapp/src/
+</bash>
+
+<bash>
+cat /mnt/user-data/workspace/scale-miniapp/src/app.config.ts
+</bash>
+
+<bash>
+cat /mnt/user-data/workspace/scale-miniapp/src/types/index.ts
+</bash>
+
+<bash>
+ls /mnt/user-data/workspace/scale-miniapp/src/services/ 2>/dev/null || echo "services dir not found"
+</bash>
+
+<bash>
+ls /mnt/user-data/workspace/scale-miniapp/src/utils/ 2>/dev/null || echo "utils dir not found"
+</bash>
+
+Let me check if auth.ts and constants.ts already exist:
+
+<bash>
+cat /mnt/user-data/workspace/scale-miniapp/src/services/auth.ts 2>/dev/null || echo "auth.ts not found"
+</bash>
+
+<bash>
+cat /mnt/user-data/workspace/scale-miniapp/src/utils/constants.ts 2>/dev/null || echo "constants.ts not found"
+</bash>
+
+Good. Now I'll create all the directories and files. Let me batch the independent operations:
+
+<bash>
+mkdir -p /mnt/user-data/workspace/scale-miniapp/src/pages/login
+mkdir -p /mnt/user-data/workspace/scale-miniapp/src/pages/profession
+echo "Directories created"
+</bash>
+
+Now let me create all the files. I'll write them in parallel groups where possible:
+
+<write file="/mnt/user-data/workspace/scale-miniapp/src/pages/login/index.tsx">
+import { useState } from 'react';
+import Taro from '@tarojs/taro';
+import { View, Text, Button } from '@tarojs/components';
+import { wxLogin, isLoggedIn } from '../../services/auth';
+import './index.scss';
+
+export default function Login() {
+  const [loading, setLoading] = useState(false);
+
+  Taro.useDidShow(() => {
+    if (isLoggedIn()) {
+      Taro.switchTab({ url: '/pages/index/index' });
+    }
+  });
+
+  const handleLogin = async () => {
+    setLoading(true);
+    try {
+      await wxLogin();
+      Taro.showToast({ title: '登录成功', icon: 'success' });
+      setTimeout(() => {
+        Taro.switchTab({ url: '/pages/index/index' });
+      }, 500);
+    } catch (e) {
+      Taro.showToast({ title: '登录失败，请重试', icon: 'none' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <View className="login-page">
+      <View className="login-card">
+        <View className="login-logo">🌟</View>
+        <Text className="login-title">喜欢与天赋量表</Text>
+        <Text className="login-subtitle">发现你的天赋，找到你的热爱</Text>
+        <Text className="login-desc">使用微信一键登录，开启测评之旅</Text>
+        <Button
+          className="login-btn"
+          loading={loading}
+          disabled={loading}
+          onClick={handleLogin}
+        >
+          {loading ? '登录中...' : '微信一键登录'}
+        </Button>
+      </View>
+    </View>
+  );
+}
+</write>
+
+<write file="/mnt/user-data/workspace/scale-miniapp/src/pages/login/index.config.ts">
+export default definePageConfig({
+  navigationBarTitleText: '登录',
+  navigationStyle: 'custom',
+});
+</write>
+
+<write file="/mnt/user-data/workspace/scale-miniapp/src/pages/login/index.scss">
+.login-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 40px;
+}
+
+.login-card {
+  background: #fff;
+  border-radius: 24px;
+  padding: 60px 40px;
+  width: 100%;
+  max-width: 500px;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+}
+
+.login-logo {
+  font-size: 80px;
+  margin-bottom: 24px;
+}
+
+.login-title {
+  display: block;
+  font-size: 36px;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin-bottom: 12px;
+}
+
+.login-subtitle {
+  display: block;
+  font-size: 28px;
+  color: #666;
+  margin-bottom: 32px;
+}
+
+.login-desc {
+  display: block;
+  font-size: 24px;
+  color: #999;
+  margin-bottom: 48px;
+}
+
+.login-btn {
+  width: 100%;
+  height: 88px;
+  background: #07c160;
+  color: #fff;
+  font-size: 32px;
+  border-radius: 44px;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+</write>
+
+<write file="/mnt/user-data/workspace/scale-miniapp/src/pages/profession/index.tsx">
+import { useState, useEffect } from 'react';
+import Taro, { useRouter } from '@tarojs/taro';
+import { View, Text, ScrollView } from '@tarojs/components';
+import { api } from '../../services/api';
+import './index.scss';
+
+interface Profession {
+  id: number;
+  name: string;
+  match_percentage: number;
+  description?: string;
+  category?: string;
+}
+
+type MedalColor = '#FFD700' | '#C0C0C0' | '#CD7F32' | '';
+
+function getMedal(index: number): { color: MedalColor; emoji: string } {
+  if (index === 0) return { color: '#FFD700', emoji: '🥇' };
+  if (index === 1) return { color: '#C0C0C0', emoji: '🥈' };
+  if (index === 2) return { color: '#CD7F32', emoji: '🥉' };
+  return { color: '', emoji: '' };
+}
+
+export default function Profession() {
+  const router = useRouter();
+  const { id } = router.params;
+  const [professions, setProfessions] = useState<Profession[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    loadData();
+  }, [id]);
+
+  const loadData = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      let data: Profession[];
+      if (id) {
+        const result = await api.getResult(Number(id));
+        data = result.professions || [];
+      } else {
+        data = await api.getProfessions();
+      }
+      setProfessions(data.sort((a, b) => b.match_percentage - a.match_percentage));
+    } catch (e: any) {
+      setError(e.message || '加载失败');
+      Taro.showToast({ title: '加载失败', icon: 'none' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const barColor = (pct: number): string => {
+    if (pct >= 80) return 'linear-gradient(90deg, #07c160, #06ad56)';
+    if (pct >= 60) return 'linear-gradient(90deg, #667eea, #5a6fd6)';
+    if (pct >= 40) return 'linear-gradient(90deg, #f39c12, #e67e22)';
+    return 'linear-gradient(90deg, #ccc, #b0b0b0)';
+  };
+
+  if (loading) {
+    return (
+      <View className="loading-wrap">
+        <Text className="loading-text">加载中...</Text>
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View className="error-wrap">
+        <Text className="error-text">{error}</Text>
+        <View className="retry-btn" onClick={loadData}>
+          <Text>重新加载</Text>
+        </View>
+      </View>
+    );
+  }
+
+  return (
+    <View className="profession-page">
+      <View className="header">
+        <Text className="header-title">专业匹配排名</Text>
+        <Text className="header-subtitle">匹配度越高，越适合你</Text>
+      </View>
+
+      <ScrollView scrollY className="rank-list">
+        {professions.map((prof, index) => {
+          const medal = getMedal(index);
+          const isTop3 = index < 3;
+
+          return (
+            <View
+              key={prof.id}
+              className={`rank-item ${isTop3 ? 'top-rank' : ''}`}
+            >
+              <View className="rank-badge">
+                {isTop3 ? (
+                  <Text className="medal-emoji">{medal.emoji}</Text>
+                ) : (
+                  <Text className="rank-number">{index + 1}</Text>
+                )}
+              </View>
+
+              <View className="rank-body">
+                <View className="rank-top-row">
+                  <Text className="prof-name">{prof.name}</Text>
+                  <Text
+                    className="match-pct"
+                    style={{ color: medal.color || '#333' }}
+                  >
+                    {prof.match_percentage}%
+                  </Text>
+                </View>
+
+                <View className="bar-track">
+                  <View
+                    className="bar-fill"
+                    style={{
+                      width: `${prof.match_percentage}%`,
+                      background: barColor(prof.match_percentage),
+                    }}
+                  />
+                </View>
+
+                {prof.description && (
+                  <Text className="prof-desc">{prof.description}</Text>
+                )}
+              </View>
+            </View>
+          );
+        })}
+      </ScrollView>
+    </View>
+  );
+}
+</write>
+
+<write file="/mnt/user-data/workspace/scale-miniapp/src/pages/profession/index.config.ts">
+export default definePageConfig({ navigationBarTitleText: '专业匹配排名' });
+</write>
+
+<write file="/mnt/user-data/workspace/scale-miniapp/src/pages/profession/index.scss">
+.profession-page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: #f5f5f5;
+}
+
+.header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 40px 32px;
+  text-align: center;
+}
+
+.header-title {
+  display: block;
+  font-size: 38px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 8px;
+}
+
+.header-subtitle {
+  display: block;
+  font-size: 24px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.rank-list {
+  flex: 1;
+  padding: 24px 24px 40px;
+}
+
+.rank-item {
+  display: flex;
+  align-items: center;
+  background: #fff;
+  border-radius: 16px;
+  padding: 24px 20px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  transition: transform 0.2s;
+}
+
+.rank-item.top-rank {
+  border: 2px solid #f0e68c;
+  box-shadow: 0 4px 20px rgba(240, 230, 140, 0.3);
+}
+
+.rank-badge {
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 20px;
+  flex-shrink: 0;
+}
+
+.medal-emoji {
+  font-size: 44px;
+}
+
+.rank-number {
+  font-size: 28px;
+  font-weight: 700;
+  color: #999;
+  width: 44px;
+  height: 44px;
+  line-height: 44px;
+  text-align: center;
+  background: #f0f0f0;
+  border-radius: 50%;
+}
+
+.rank-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.rank-top-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.prof-name {
+  font-size: 30px;
+  font-weight: 600;
+  color: #1a1a2e;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 65%;
+}
+
+.match-pct {
+  font-size: 32px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.bar-track {
+  width: 100%;
+  height: 12px;
+  background: #eee;
+  border-radius: 6px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.bar-fill {
+  height: 100%;
+  border-radius: 6px;
+  transition: width 0.6s ease;
+}
+
+.prof-desc {
+  display: block;
+  font-size: 22px;
+  color: #999;
+  line-height: 1.5;
+  margin-top: 6px;
+}
+
+.loading-wrap,
+.error-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+}
+
+.loading-text {
+  font-size: 28px;
+  color: #999;
+}
+
+.error-text {
+  font-size: 28px;
+  color: #e74c3c;
+  margin-bottom: 24px;
+}
+
+.retry-btn {
+  padding: 16px 40px;
+  background: #667eea;
+  color: #fff;
+  font-size: 28px;
+  border-radius: 40px;
+}
+</write>
+
+Now let me write the services and utils files:
+
+<write file="/mnt/user-data/workspace/scale-miniapp/src/services/api.ts">
+import Taro from '@tarojs/taro';
+import { API_BASE_URL } from '../utils/constants';
+import { getToken } from './auth';
+import { Scale, Question, Result } from '../types';
+
+function request<T>(url: string, options: any = {}): Promise<T> {
+  const token = getToken();
+  const header: any = { 'Content-Type': 'application/json' };
+  if (token) header['Authorization'] = `Bearer ${token}`;
+
+  return new Promise((resolve, reject) => {
+    Taro.request({
+      url: `${API_BASE_URL}${url}`,
+      header,
+      ...options,
+      success(res) {
+        if (res.statusCode === 200) resolve(res.data as T);
+        else if (res.statusCode === 401) {
+          Taro.reLaunch({ url: '/pages/login/index' });
+          reject(new Error('未登录'));
+        } else reject(new Error(res.data?.detail || '请求失败'));
+      },
+      fail(err) {
+        Taro.showToast({ title: '网络错误', icon: 'none' });
+        reject(err);
+      },
+    });
+  });
+}
+
+export const api = {
+  login: (code: string) =>
+    request<any>('/auth/login', { method: 'POST', data: { code } }),
+
+  getScales: () => request<Scale[]>('/scales'),
+
+  getScaleDetail: (id: number) => request<Scale>(`/scales/${id}`),
+
+  getQuestions: (id: number) => request<Question[]>(`/scales/${id}/questions`),
+
+  submitAnswers: (
+    scaleId: number,
+    answers: { question_id: number; value: number }[]
+  ) =>
+    request<Result>(`/scales/${scaleId}/submit`, {
+      method: 'POST',
+      data: { answers },
+    }),
+
+  getResult: (id: number) => request<Result>(`/results/${id}`),
+
+  getResults: () => request<Result[]>('/results'),
+
+  getProfessions: () => request<any[]>('/professions'),
+};
+</write>
+
+<write file="/mnt/user-data/workspace/scale-miniapp/src/services/auth.ts">
+import Taro from '@tarojs/taro';
+import { api } from './api';
+
+const TOKEN_KEY = 'auth_token';
+const USER_KEY = 'auth_user';
+
+export function getToken(): string | null {
+  return Taro.getStorageSync(TOKEN_KEY) || null;
+}
+
+export function setToken(token: string): void {
+  Taro.setStorageSync(TOKEN_KEY, token);
+}
+
+export function clearToken(): void {
+  Taro.removeStorageSync(TOKEN_KEY);
+  Taro.removeStorageSync(USER_KEY);
+}
+
+export function isLoggedIn(): boolean {
+  return !!getToken();
+}
+
+export function getUserInfo(): any {
+  const raw = Taro.getStorageSync(USER_KEY);
+  return raw ? JSON.parse(raw) : null;
+}
+
+export function setUserInfo(info: any): void {
+  Taro.setStorageSync(USER_KEY, JSON.stringify(info));
+}
+
+export async function wxLogin(): Promise<void> {
+  const loginRes = await Taro.login();
+  if (!loginRes.code) {
+    throw new Error('获取微信登录凭证失败');
+  }
+
+  const data = await api.login(loginRes.code);
+  if (data.token) {
+    setToken(data.token);
+    if (data.user) {
+      setUserInfo(data.user);
+    }
+  } else {
+    throw new Error('登录失败：服务器未返回 token');
+  }
+}
+
+export function logout(): void {
+  clearToken();
+  Taro.reLaunch({ url: '/pages/login/index' });
+}
+</write>
+
+<write file="/mnt/user-data/workspace/scale-miniapp/src/utils/constants.ts">
+export const API_BASE_URL = 'https://api.scale.example.com/api/v1';
+
+export const SCALE_OPTIONS = [
+  { label: '非常不同意', value: 1 },
+  { label: '不同意', value: 2 },
+  { label: '中立', value: 3 },
+  { label: '同意', value: 4 },
+  { label: '非常同意', value: 5 },
+] as const;
+</write>
+
+Now update the app config:
+
+<write file="/mnt/user-data/workspace/scale-miniapp/src/app.config.ts">
+export default defineAppConfig({
+  pages: [
+    'pages/index/index',
+    'pages/login/index',
+    'pages/quiz/index',
+    'pages/result/index',
+    'pages/profession/index',
+    'pages/history/index',
+  ],
+  window: {
+    navigationBarTitleText: '喜欢与天赋量表',
+    navigationBarBackgroundColor: '#667eea',
+    navigationBarTextStyle: 'white',
+    backgroundColor: '#f5f5f5',
+  },
+});
+</write>
+
+Let me verify all files were created correctly:
+
+<bash>
+echo "=== Directory Structure ==="
+find /mnt/user-data/workspace/scale-miniapp/src -type f | sort
+
+echo ""
+echo "=== File sizes ==="
+for f in \
+  src/pages/login/index.tsx \
+  src/pages/login/index.config.ts \
+  src/pages/login/index.scss \
+  src/pages/profession/index.tsx \
+  src/pages/profession/index.config.ts \
+  src/pages/profession/index.scss \
+  src/services/api.ts \
+  src/services/auth.ts \
+  src/utils/constants.ts \
+  src/app.config.ts; do
+  if [ -f "/mnt/user-data/workspace/scale-miniapp/$f" ]; then
+    echo "  $f: $(wc -c < /mnt/user-data/workspace/scale-miniapp/$f) bytes"
+  else
+    echo "  $f: MISSING"
+  fi
+done
+</bash>
+
+<bash>
+# Quick content validation
+echo "=== login/index.tsx first 3 lines ==="
+head -3 /mnt/user-data/workspace/scale-miniapp/src/pages/login/index.tsx
+
+echo ""
+echo "=== profession/index.tsx line count ==="
+wc -l /mnt/user-data/workspace/scale-miniapp/src/pages/profession/index.tsx
+
+echo ""
+echo "=== api.ts line count ==="
+wc -l /mnt/user-data/workspace/scale-miniapp/src/services/api.ts
+
+echo ""
+echo "=== auth.ts line count ==="
+wc -l /mnt/user-data/workspace/scale-miniapp/src/services/auth.ts
+
+echo ""
+echo "=== constants.ts content ==="
+cat /mnt/user-data/workspace/scale-miniapp/src/utils/constants.ts
+
+echo ""
+echo "=== app.config.ts pages ==="
+grep -A10 'pages:' /mnt/user-data/workspace/scale-miniapp/src/app.config.ts
+</bash>
+
+All 10 files are created. Here's a summary:
+
+## Files Created
+
+| # | File | Description |
+|---|------|-------------|
+| 1 | `src/pages/login/index.tsx` | Login page with WeChat one-click login, auto-redirect if already logged in |
+| 2 | `src/pages/login/index.config.ts` | Custom navigation bar config for login |
+| 3 | `src/pages/login/index.scss` | Gradient background, centered card with logo/title/button styles |
+| 4 | `src/pages/profession/index.tsx` | Profession ranking page — fetches from API, sorted by match %, gold/silver/bronze top 3, colored progress bars |
+| 5 | `src/pages/profession/index.config.ts` | Page config with title |
+| 6 | `src/pages/profession/index.scss` | Ranking list styles with gradient header, medal badges, bar charts |
+| 7 | `src/services/api.ts` | Complete API client — `request()` wrapper with auth header injection, 401 redirect to login, all endpoints |
+| 8 | `src/services/auth.ts` | Token management (get/set/clear), `wxLogin` flow, `isLoggedIn`, user info storage |
+| 9 | `src/utils/constants.ts` | `API_BASE_URL` and `SCALE_OPTIONS` (5-point Likert scale) |
+| 10 | `src/app.config.ts` | Updated with `pages/login/index` and `pages/profession/index` added |
+
+**Key implementation details:**
+- **Profession page** handles both direct access (via `/professions` endpoint) and result-linked access (via `?id=` param from `/results/{id}`)
+- **API client** uses generic typing, bearer token injection, 401 auto-redirect to login, and network error toasts
+- **Auth service** stores token + user info via `Taro.Storage`, with `wxLogin` coordinating `Taro.login()` → API call → store flow

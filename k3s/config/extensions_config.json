@@ -1,0 +1,18 @@
+{
+  "mcpServers": {
+    "openviking": {
+      "enabled": true,
+      "type": "http",
+      "url": "http://openviking.deer-flow.svc:1933/mcp",
+      "headers": {
+        "Authorization": "$OPENVIKING_MCP_AUTHORIZATION"
+      },
+      "description": "OpenViking 分层记忆与上下文检索（search/find/read/store）"
+    }
+  },
+  "skills": {
+    "openviking-memory": {
+      "enabled": true
+    }
+  }
+}

@@ -1,0 +1,59 @@
+# DeerFlow K8s 部署用最小配置
+# deploy.ps1 会复制为 config/config.yaml 并注入 API Key
+config_version: 11
+log_level: info
+
+token_usage:
+  enabled: true
+
+# 请根据 .env 中填写的 Key 保留对应模型（deploy 脚本可自动选择 OpenAI）
+models:
+  - name: gpt-4o-mini
+    display_name: GPT-4o Mini
+    use: langchain_openai:ChatOpenAI
+    model: gpt-4o-mini
+    api_key: $OPENAI_API_KEY
+    max_tokens: 8192
+    temperature: 0.7
+    supports_vision: true
+
+tool_groups:
+  - name: web
+  - name: file:read
+  - name: file:write
+  - name: bash
+
+tools:
+  - name: web_search
+    group: web
+    use: deerflow.community.tavily.tools:web_search_tool
+    max_results: 5
+  - name: web_fetch
+    group: web
+    use: deerflow.community.jina_ai.tools:web_fetch_tool
+
+# K8s 模式：通过 Provisioner 动态创建 Sandbox Pod
+sandbox:
+  use: deerflow.community.aio_sandbox:AioSandboxProvider
+  provisioner_url: http://deer-flow-provisioner:8002
+
+skills:
+  path: /app/skills
+  container_path: /mnt/skills
+
+title:
+  enabled: true
+  max_words: 6
+  max_chars: 60
+
+subagents:
+  enabled: true
+  timeout_seconds: 900
+
+memory:
+  enabled: true
+  injection_enabled: true
+  debounce_seconds: 30
+  max_facts: 100
+  fact_confidence_threshold: 0.7
+  max_injection_tokens: 2000

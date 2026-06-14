@@ -1,0 +1,85 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: deer-flow-provisioner
+  namespace: deer-flow
+  labels:
+    app.kubernetes.io/name: deer-flow-provisioner
+    app.kubernetes.io/component: provisioner
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: deer-flow-provisioner
+  template:
+    metadata:
+      labels:
+        app: deer-flow-provisioner
+        app.kubernetes.io/name: deer-flow-provisioner
+    spec:
+      serviceAccountName: deer-flow-provisioner
+      containers:
+        - name: provisioner
+          image: deer-flow-provisioner:latest
+          imagePullPolicy: Never
+          ports:
+            - name: http
+              containerPort: 8002
+          env:
+            # 不挂载 kubeconfig，30s 后自动 fallback 到 in-cluster config
+            - name: KUBECONFIG_PATH
+              value: /nonexistent/kubeconfig
+            - name: K8S_NAMESPACE
+              value: deer-flow
+            - name: SANDBOX_IMAGE
+              value: enterprise-public-cn-beijing.cr.volces.com/vefaas-public/all-in-one-sandbox:latest
+            - name: SKILLS_PVC_NAME
+              value: deer-flow-skills
+            - name: USERDATA_PVC_NAME
+              value: deer-flow-data
+            # deploy.ps1 会 patch 为节点 InternalIP
+            - name: NODE_HOST
+              value: "REPLACE_NODE_HOST"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8002
+            initialDelaySeconds: 35
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8002
+            initialDelaySeconds: 40
+            periodSeconds: 15
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          volumeMounts:
+            - name: provisioner-app
+              mountPath: /app/app.py
+              subPath: app.py
+              readOnly: true
+      volumes:
+        - name: provisioner-app
+          configMap:
+            name: deer-flow-provisioner-app
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: deer-flow-provisioner
+  namespace: deer-flow
+  labels:
+    app.kubernetes.io/name: deer-flow-provisioner
+spec:
+  selector:
+    app: deer-flow-provisioner
+  ports:
+    - name: http
+      port: 8002
+      targetPort: 8002

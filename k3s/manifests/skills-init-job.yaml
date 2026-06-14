@@ -1,0 +1,43 @@
+# 已废弃：skills 改由 deploy.ps1 从本地 deer-flow/skills 复制到 PVC
+# 保留文件供参考，部署脚本不再 apply 此 Job
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: deer-flow-skills-init
+  namespace: deer-flow
+  labels:
+    app.kubernetes.io/name: deer-flow
+    app.kubernetes.io/component: skills-init
+spec:
+  ttlSecondsAfterFinished: 600
+  backoffLimit: 3
+  template:
+    metadata:
+      labels:
+        app: deer-flow-skills-init
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: init-skills
+          image: alpine/git:latest
+          command:
+            - sh
+            - -c
+            - |
+              set -e
+              if [ -f /skills/.initialized ]; then
+                echo "skills 已初始化，跳过"
+                exit 0
+              fi
+              echo "正在克隆 DeerFlow skills..."
+              git clone --depth 1 https://github.com/bytedance/deer-flow.git /tmp/deer-flow
+              cp -a /tmp/deer-flow/skills/. /skills/
+              touch /skills/.initialized
+              echo "skills 初始化完成"
+          volumeMounts:
+            - name: skills
+              mountPath: /skills
+      volumes:
+        - name: skills
+          persistentVolumeClaim:
+            claimName: deer-flow-skills
