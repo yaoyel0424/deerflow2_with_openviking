@@ -104,8 +104,7 @@ command:
   - cd /app/backend && PYTHONPATH=/app/backend:/app/extensions uv run --no-sync python /app/extensions/run_gateway.py
 ```
 
-**相关环境变量：**
-
+**相关环境变量：** 
 | 变量 | 说明 |
 |------|------|
 | `OPENVIKING_BASE_URL` | REST 地址，默认 `http://openviking:1933` |
