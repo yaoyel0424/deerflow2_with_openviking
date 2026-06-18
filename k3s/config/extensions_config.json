@@ -13,6 +13,9 @@
   "skills": {
     "openviking-memory": {
       "enabled": true
+    },
+    "vision-image-delegation": {
+      "enabled": true
     }
   }
 }
